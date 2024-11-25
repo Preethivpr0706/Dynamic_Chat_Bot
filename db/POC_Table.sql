@@ -25,3 +25,12 @@ UPDATE `chatbotdynamic`.`poc` SET `Meet_Link` = 'https://meet.google.com/fqa-ibj
 INSERT INTO POC (Client_ID, Department_ID, POC_Name, Specialization, Contact_Number, Email)
 VALUES
 (1, 8, 'Master Health Checkup', 'Master Health Checkup', '+917299817996', 'harishradhakrishnan2001@gmail.com');
+
+-- Insert Doctors into POC Table
+INSERT INTO POC (Client_ID, Department_ID, POC_Name, Specialization, Contact_Number, Email, Meet_Link)
+VALUES
+(1, 1, 'Dr. Bob', 'Cardiology', '+917299817996', 'harishradhakrishnan2001@gmail.com','https://meet.google.com/fqa-ibje-mpn'),
+(1, 2, 'Dr. Alice', 'Orthopedics', '+919094995418', 'preethivijay0706@gmail.com','https://meet.google.com/fqa-ibje-mpn'),
+(1, 3, 'Dr. Rakesh', 'Pediatrics', '+919003060876', 'harishrk2101@gmail.com','https://meet.google.com/fqa-ibje-mpn');
+
+

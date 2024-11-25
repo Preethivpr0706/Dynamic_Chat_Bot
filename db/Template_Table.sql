@@ -28,3 +28,25 @@ VALUES
 INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
 VALUES
 (1, 'CONFIRM_CHECKUP', 'Here are your appointment details:\n\nName: [User_Name]\nEmail: [User_Email]\nLocation: [User_Location]\nAppointment Type: [Appointment_Type]\nAppointment Date: [Appointment_Date]\nAppointment Time: [Appointment_Time]');
+
+INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT) 
+VALUES 
+(1, 'Live_Location', '📍 To assist you better, please share your live location.\n\nHere’s how to share your location on WhatsApp:\n1️⃣ Open your chat with us.\n2️⃣ Tap the 📎 (Attachment) icon.\n3️⃣ Select "Location."\n4️⃣ Choose "Share Live Location" and select the duration you\'d like to share for.\n\nThank you for helping us serve you better! 😊');
+
+-- 25/11/2024
+
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Here are your appointment details:\r\n *Name:* [User_Name]\r\n *Email:* [User_Email]\n\r *Location:* [User_Location]\n\r *Appointment Type:* [Appointment_Type]\n\r *Department:* [Department]\n\r *Doctor:* [POC]\n\r *Appointment Date:* [Appointment_Date]\n\r *Appointment Time:* [Appointment_Time]' WHERE (`TEMPLATE_ID` = '1');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]' WHERE (`TEMPLATE_ID` = '2');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Here are your appointment details:\n\r \r*Name:* [User_Name]\n\r *Email:* [User_Email]\n\r *Location:* [User_Location]\n\r *Appointment Type:* [Appointment_Type]\n\r *Emergency Reason:* [Emergency_Reason]' WHERE (`TEMPLATE_ID` = '3');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]\n\r  Your *G-meet Link* is given below!' WHERE (`TEMPLATE_ID` = '5');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Your appointment request has been *cancelled*. You can start over if you\'d like to make a new appointment.' WHERE (`TEMPLATE_ID` = '6');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Here are your appointment details:\r \r\n *Name:* [User_Name]\n\r *Email:* [User_Email]\n\r *Location:* [User_Location]\r\n *Appointment Type:* [Appointment_Type]\r\n *Appointment Date:* [Appointment_Date]\r\n *Appointment Time:* [Appointment_Time]' WHERE (`TEMPLATE_ID` = '7');
+
+INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
+VALUES
+(1, 'CONFIRM_RESCHEDULE', 'Here are your appointment details:\r\n \r *Name:* [User_Name]\r\n *Email:* [User_Email]\r\n *Location:* [User_Location]\r\n *Appointment Type:* [Appointment_Type]\n\r *Appointment Date:* [Appointment_Date]\n\r *Appointment Time:* [Appointment_Time]');
+
+INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
+VALUES
+(1, 'FINALIZE_RESCHEDULE', 'Appointment rescheduled successfully. Your *New Appointment ID:* [Appointment_ID]');
+

@@ -191,3 +191,71 @@ UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Appointment_Type~FETCH_AVAILABLE_
 
 
 
+
+
+UPDATE Menu
+SET Menu_ID = Menu_ID + 1
+WHERE Menu_ID >= 13
+ORDER BY Menu_ID DESC;
+INSERT INTO Menu (Menu_ID, Client_ID, Language, Menu_Name, Display_Order, Parent_Menu_ID, Action, Header_Message)
+VALUES (13, 1, 'ENG', 'New Emergency Step', 1, 12, 'Emergency_Reason~Live_Location', 'Share your Live Location');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '13', `Action` = 'User_Location~CONFIRM_EMERGENCY' WHERE (`Menu_ID` = '14');
+UPDATE `chatbotdynamic`.`menu` SET `Menu_Name` = 'Share Live Location', `Display_Order` = '1' WHERE (`Menu_ID` = '13');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '14' WHERE (`Menu_ID` = '15');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '16' WHERE (`Menu_ID` = '17');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '17' WHERE (`Menu_ID` = '18');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '18' WHERE (`Menu_ID` = '19');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '19' WHERE (`Menu_ID` = '20');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '20' WHERE (`Menu_ID` = '21');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '22' WHERE (`Menu_ID` = '23');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '23' WHERE (`Menu_ID` = '24');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '24' WHERE (`Menu_ID` = '25');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '25' WHERE (`Menu_ID` = '26');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '26' WHERE (`Menu_ID` = '27');
+
+
+
+truncate table chatbotdynamic.menu;
+
+INSERT INTO chatbotdynamic.menu (Menu_ID, Client_ID, Language, Menu_Name, Display_Order, Parent_Menu_ID, Action, Header_Message) VALUES
+(1, 1, 'ENG', 'Book Appointment', 1, 0, NULL, 'Select your preference'),
+(2, 1, 'ENG', 'Reschedule', 2, 0, NULL, NULL),
+(3, 1, 'ENG', 'Cancel Appointment', 3, 0, NULL, NULL),
+(4, 1, 'ENG', 'Emergency', 1, 1, NULL, NULL),
+(5, 1, 'ENG', 'Tele Consultation', 2, 1, NULL, NULL),
+(6, 1, 'ENG', 'Direct Consultation', 3, 1, NULL, NULL),
+(7, 1, 'ENG', 'Master Health Checkup', 4, 1, NULL, NULL),
+(8, 1, 'ENG', 'Select Date Checkup', 1, 7, 'Appointment_Type~FETCH_AVAILABLE_DATES_CHECKUP', 'Select a date'),
+(9, 1, 'ENG', 'Select Time Checkup', 1, 8, 'Appointment_Date~FETCH_AVAILABLE_TIMES_DIRECT', 'Select a time'),
+(10, 1, 'ENG', 'Confirm Checkup Appointment', 1, 9, 'Appointment_Time~CONFIRM_CHECKUP', 'Please Confirm Your details'),
+(11, 1, 'ENG', 'Finalize Checkup Appointment', 1, 10, 'Confirm_Status~FINALIZE', 'Appointment is confirmed'),
+(12, 1, 'ENG', 'Show Emergency Reasons List', 1, 4, 'Appointment_Type~LIST~EMERGENCY_REASON', 'Select the Emergency Reason'),
+(13, 1, 'ENG', 'Confirm Emergency Details', 1, 12, 'Emergency_Reason~CONFIRM_EMERGENCY', 'Please Confirm Your details'),
+(14, 1, 'ENG', 'Finalize Emergency', 1, 13, 'Confirm_Status~FINALIZE_EMERGENCY', 'Waiting for your arrival'),
+(15, 1, 'ENG', 'Show Department List', 1, 6, 'Appointment_Type~LIST~DEPARTMENT', 'Select the Department'),
+(16, 1, 'ENG', 'Select Doctor Direct', 1, 15, 'Department~POC~DEPARTMENT_ID', 'Select the doctor'),
+(17, 1, 'ENG', 'Select Date Direct', 1, 16, 'Poc_name~FETCH_AVAILABLE_DATES_DIRECT', 'Select the date'),
+(18, 1, 'ENG', 'Select Time Direct', 1, 17, 'Appointment_Date~FETCH_AVAILABLE_TIMES_DIRECT', 'Select the time'),
+(19, 1, 'ENG', 'Confirm Direct Appointment', 1, 18, 'Appointment_Time~CONFIRM', 'Please confirm your details.'),
+(20, 1, 'ENG', 'Finalize Direct Appointment', 1, 19, 'Confirm_Status~FINALIZE', 'Appointment confirmed.Your Appointment ID: [Appointment_ID]'),
+(21, 1, 'ENG', 'Select Department Tele', 1, 5, 'Appointment_Type~LIST~DEPARTMENT', 'Select a department'),
+(22, 1, 'ENG', 'Select Doctor Tele', 1, 21, 'Department~POC~DEPARTMENT_ID', 'Select a doctor'),
+(23, 1, 'ENG', 'Select Date Tele', 1, 22, 'Poc_name~FETCH_AVAILABLE_DATES_DIRECT', 'Select a date'),
+(24, 1, 'ENG', 'Select Time Tele', 1, 23, 'Appointment_Date~FETCH_AVAILABLE_TIMES_DIRECT', 'Select a time'),
+(25, 1, 'ENG', 'Confirm Tele Appointment', 1, 24, 'Appointment_Time~CONFIRM', 'Please confirm yourappointment details'),
+(26, 1, 'ENG', 'Finalize Tele Appointment', 1, 25, 'Confirm_Status~FINALIZE_TELE', 'Your gmeet link is given below'),
+(27, 1, 'ENG', 'Confirm Cancel', 1, 3, 'Appointment_Function~FETCH_APPOINTMENT_DETAILS', 'Cancel your appointment'),
+(28, 1, 'ENG', 'Finalize Cancel', 1, 27, 'Confirm_Status~FINALIZE_CANCEL', 'Appointment Cancelled');
+
+-- 2024/11/25
+UPDATE `chatbotdynamic`.`menu` SET `Header_Message` = '*How can I help you?*' WHERE (`Menu_ID` = '1');
+
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Action`, `Header_Message`) VALUES ('29', '1', 'ENG', 'Confirm Reschedule', '1', '2', 'Appointment_Function~FETCH_APPOINTMENT_DETAILS_RESCHEDULE', 'Reschedule your appointment');
+UPDATE `chatbotdynamic`.`menu` SET `Menu_Name` = 'Fetch Appointment Details' WHERE (`Menu_ID` = '29');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Action`, `Header_Message`) VALUES ('30', '1', 'ENG', 'Fetch available Dates', '1', '29', 'Confirm_Status~RESCHEDULE_DATE', 'Select a new date');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Action`, `Header_Message`) VALUES ('31', '1', 'ENG', 'Fetch available Time', '1', '30', 'Appointment_Date~FETCH_AVAILABLE_TIMES_DIRECT', 'Select a time');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Action`, `Header_Message`) VALUES ('32', '1', 'ENG', 'Confirm Reschedule', '1', '31', 'Appointment_Time~CONFIRM_RESCHEDULE', 'Reschedule your appointment');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Action`, `Header_Message`) VALUES ('33', '1', 'ENG', 'Finalize Reschedule', '1', '32', 'Confirm_Status~FINALIZE_RESCHEDULE', 'Appointment Rescheduled');
+
+
+UPDATE `chatbotdynamic`.`menu` SET `Header_Message` = 'Please confirm your appointment details' WHERE (`Menu_ID` = '25');

@@ -1,18 +1,24 @@
 const { getConnection } = require('./db');
+const { sendWhatsAppMessage } = require('./utils');
 
 function getClientID(displayPhoneNumber) {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT Client_ID FROM Client WHERE Contact_Number LIKE CONCAT("+", ?)';
+        const query = 'SELECT Client_ID FROM Client WHERE Contact_Number = ?';
         const connection = getConnection();
         console.log(`displayPhoneNumber"${displayPhoneNumber}`);
         console.log(`displayPhoneNumber"${displayPhoneNumber}`);
-        connection.execute(query, [displayPhoneNumber], (err, results) => {
+        connection.execute(query, [displayPhoneNumber], async(err, results) => {
             if (err) {
                 console.error('error running query:', err);
                 return;
             }
-            const clientId = results[0].Client_ID;
-            resolve(clientId);
+            if (results.length > 0) {
+                const clientId = results[0].Client_ID;
+                resolve(clientId);
+            } else {
+                await sendWhatsAppMessage(from, `There is no client with ID ${displayPhoneNumber}`);
+                reject(new Error(`There is no client with ID ${displayPhoneNumber}`));
+            }
         });
     });
 }
@@ -89,7 +95,7 @@ function getFromList(iClientId, iMenuId, iKey, iLang) {
 
 function getPocFromPoc(iClientId, iMenuId, iKey) {
     return new Promise((resolve, reject) => {
-        console.log(`getFromList: iClientId:${iClientId} , iMenuId:${iMenuId} ,iKey:${iKey}`);
+        console.log(`getFromPOC: iClientId:${iClientId} , iMenuId:${iMenuId} ,iKey:${iKey}`);
         const query = `SELECT 
                             Client_ID as CLIENT_ID,
                             ? MENU_ID,
@@ -241,7 +247,7 @@ async function insertAppointment(clientId, userId) {
     const query = 'INSERT INTO Appointments (Client_ID, User_ID, POC_ID, Appointment_Date, Appointment_Time, Appointment_Type, Status, Is_Active, JSON_DATA) VALUES (?,?,?,?,?,?,?,?,?)';
     const connection = getConnection();
     return new Promise((resolve, reject) => {
-        connection.execute(query, [clientId, userId, null, null, null, null, 'Pending', true, JSON.stringify({})], (err, result) => {
+        connection.execute(query, [clientId, userId, null, null, null, null, 'Pending', false, JSON.stringify({})], (err, result) => {
             if (err) {
                 reject(err);
             } else {
@@ -253,7 +259,7 @@ async function insertAppointment(clientId, userId) {
 }
 
 async function updateAppointment(column_name, value, appointmentId) {
-    const query = `UPDATE Appointments SET ${column_name} =? WHERE Appointment_ID =?`;
+    const query = `UPDATE Appointments SET ${column_name} =? WHERE Appointment_ID =? AND Status <> "Rescheduled"`;
     const connection = getConnection();
     return new Promise((resolve, reject) => {
         connection.execute(query, [value, appointmentId], (err, result) => {
@@ -266,44 +272,46 @@ async function updateAppointment(column_name, value, appointmentId) {
     });
 }
 
-const updateJsonData = (appointmentId, dynamicVarName, iUserValue) => {
+
+
+
+
+// fetch appointment details using userId for cancel and reschedule
+function getAppointmentDetailsByUserID(userId) {
     return new Promise((resolve, reject) => {
+        console.log(userId);
+        const query = `SELECT Appointment_Type, POC_ID, Appointment_ID, DATE_FORMAT(Appointment_Date, '%Y-%m-%d') as Appointment_Date, Appointment_Time FROM appointments WHERE User_ID = ? AND Appointment_Type <> "Emergency" AND Is_Active=1 AND(Appointment_Date > CURDATE() OR (Appointment_Date = CURDATE() AND Appointment_Time >= CURTIME()))`;
         const connection = getConnection();
-
-        // MySQL query to append new data to the JSON object directly
-        const updateQuery = `
-            UPDATE Appointments
-            SET JSON_DATA = JSON_SET(JSON_DATA, '$.${dynamicVarName}', ?)
-            WHERE Appointment_ID = ?
-        `;
-
-        // Execute the update query
-        connection.execute(updateQuery, [iUserValue, appointmentId], (err) => {
+        connection.execute(query, [userId], (err, rows) => {
             if (err) {
-                console.error('Error updating JSON data:', err.message);
-                reject(err);
+                reject(err); // Reject the Promise if there is an error
             } else {
-                console.log('JSON data updated successfully');
-                resolve();
+
+                console.log(rows);
+                resolve(rows);
+
             }
         });
     });
-};
+}
 
-
-async function updateAvailableSlots(dynamicVariables) {
-    const query = `
-        UPDATE POC_Available_Slots
-        SET appointments_per_slot = appointments_per_slot - 1
-        WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ? AND appointments_per_slot > 0;
-    `;
-    // Extract values from dynamicVariables
-    const doctorId = dynamicVariables.Poc_ID;
-    const date = dynamicVariables.Appointment_Date;
-    const time = dynamicVariables.Appointment_Time;
-
-    const connection = getConnection();
-    await connection.execute(query, [doctorId, date, time]);
+function getAppointmentDetailsByAppointmentId(appointmentId) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT Appointment_Type, POC_ID,DATE_FORMAT(Appointment_Date, '%Y-%m-%d') as Appointment_Date, Appointment_Time FROM appointments WHERE Appointment_ID = ?`;
+        const connection = getConnection();
+        connection.execute(query, [appointmentId], (err, rows) => {
+            if (err) {
+                reject(err); // Reject the Promise if there is an error
+            } else {
+                if (rows.length > 0) {
+                    console.log(rows);
+                    resolve(rows);
+                } else {
+                    reject(new Error(`Error in fetching appointment`));
+                }
+            }
+        });
+    });
 }
 
 
@@ -346,4 +354,123 @@ async function getMeetLink(pocId) {
     });
 }
 
-module.exports = { getMeetLink, getTemplateMessage, insertAppointment, updateAppointment, updateJsonData, updateAvailableSlots, insertUserData, getUserData, updateUserField, getClientID, getWelcomeMessage, getMainMenu, getFromList, getPocFromPoc, getAvailableDates, getAvailableTimes };
+const updateAppointmentJsonData = (appointmentId, key, value) => {
+    return new Promise((resolve, reject) => {
+        const connection = getConnection();
+
+        // MySQL query to append new data to the JSON object directly  
+        const updateQuery = `  
+         UPDATE Appointments  
+         SET JSON_DATA = JSON_SET(JSON_DATA, '$.${key}', ?)  
+         WHERE Appointment_ID = ?  
+       `;
+
+        // Execute the update query  
+        connection.execute(updateQuery, [value, appointmentId], (err) => {
+            if (err) {
+                console.error('Error updating JSON data:', err.message);
+                reject(err);
+            } else {
+                console.log('JSON data updated successfully');
+                resolve();
+            }
+        });
+    });
+};
+
+
+const getAppointmentJsonDataByKey = (appointmentId, key) => {
+    return new Promise((resolve, reject) => {
+        const connection = getConnection();
+
+        // MySQL query to retrieve a specific value from the JSON data  
+        const query = `  
+         SELECT JSON_EXTRACT(JSON_DATA, '$.${key}') AS value  
+         FROM Appointments  
+         WHERE Appointment_ID = ?  
+       `;
+
+        // Execute the query  
+        connection.execute(query, [appointmentId], (err, results) => {
+            if (err) {
+                console.error('Error retrieving JSON data:', err.message);
+                reject(err);
+            } else {
+                const value = results[0].value;
+                resolve(value);
+            }
+        });
+    });
+};
+
+const getAppointmentJsonData = (appointmentId) => {
+    return new Promise((resolve, reject) => {
+        const connection = getConnection();
+        console.log(appointmentId);
+        // MySQL query to retrieve the JSON data   
+        const query = `   
+      SELECT JSON_DATA   
+      FROM Appointments   
+      WHERE Appointment_ID = ?   
+    `;
+
+        // Execute the query   
+        connection.execute(query, [appointmentId], (err, results) => {
+            if (err) {
+                console.error('Error retrieving JSON data:', err.message);
+                reject(err);
+            } else {
+                const jsonData = results[0];
+                console.log('getAppointmentJsonData:', jsonData); // Add this log  
+                resolve(jsonData);
+            }
+        });
+    });
+};
+
+const updateAvailableSlots = async(jsonData) => {
+    console.log('updateAvailableSlots:', jsonData);
+
+    if (jsonData === null || jsonData === undefined) {
+        console.log('No appointment found');
+        return;
+    }
+
+    const query = `  
+     UPDATE POC_Available_Slots  
+     SET appointments_per_slot = appointments_per_slot - 1  
+     WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ? AND appointments_per_slot > 0;  
+    `;
+
+    // Access the nested `JSON_DATA` object  
+    const data = jsonData.JSON_DATA;
+
+    // Access specific properties inside `JSON_DATA`  
+    const doctorId = data.Poc_ID;
+    const appointmentDate = data.Appointment_Date;
+    const appointmentTime = data.Appointment_Time;
+
+    const connection = getConnection();
+    await connection.execute(query, [doctorId, appointmentDate, appointmentTime]);
+};
+
+const increaseAvailableSlots = async(jsonData) => {
+    console.log('increaseAvailableSlots:', jsonData);
+
+    if (jsonData === null || jsonData === undefined) {
+        console.log('No appointment found');
+        return;
+    }
+    // Access the nested `JSON_DATA` object  
+    const data = jsonData.JSON_DATA;
+
+    // Access specific properties inside `JSON_DATA`  
+    const pocId = data.Poc_ID;
+    const appointmentDate = data.Appointment_Date;
+    const appointmentTime = data.Appointment_Time;
+    const query = `UPDATE POC_Available_Slots SET appointments_per_slot = appointments_per_slot + 1 WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ?`;
+    const connection = getConnection();
+    await connection.execute(query, [pocId, appointmentDate, appointmentTime]);
+};
+
+module.exports = { getAppointmentDetailsByAppointmentId, getAppointmentDetailsByUserID, increaseAvailableSlots, getMeetLink, getTemplateMessage, insertAppointment, updateAppointment, updateAvailableSlots, insertUserData, getUserData, updateUserField, getClientID, getWelcomeMessage, getMainMenu, getFromList, getPocFromPoc, getAvailableDates, getAvailableTimes, getAppointmentJsonDataByKey, getAppointmentJsonData, updateAppointmentJsonData };

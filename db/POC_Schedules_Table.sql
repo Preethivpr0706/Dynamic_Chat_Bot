@@ -60,3 +60,42 @@ VALUES
 (4, 'Friday', '10:00:00', '12:00:00', 60, 10),
 (4, 'Friday', '14:00:00', '17:00:00', 60, 10);
 
+-- Dr. Bob
+INSERT INTO POC_Schedules (POC_ID, Day_of_Week, start_time, end_time, slot_duration, appointments_per_slot)
+VALUES
+(5, 'Monday', '10:00:00', '12:00:00', 30, 3), 
+(5, 'Monday', '14:00:00', '17:00:00', 30, 3), 
+(5, 'Tuesday', '10:00:00', '12:00:00', 30, 3),
+(5, 'Tuesday', '14:00:00', '17:00:00', 30, 3),
+(5, 'wednesday', '10:00:00', '12:00:00', 30, 3),
+(5, 'wednesday', '14:00:00', '17:00:00', 30, 3),
+(5, 'Thursday', '10:00:00', '12:00:00', 30, 3),
+(5, 'Thursday', '14:00:00', '17:00:00', 30, 3),
+(5, 'Friday', '10:00:00', '12:00:00', 30, 3),
+(5, 'Friday', '14:00:00', '17:00:00', 30, 3);
+-- Doctor 2: Dr. Alice (Orthopedics)
+INSERT INTO POC_Schedules (POC_ID, Day_of_Week, start_time, end_time, slot_duration, appointments_per_slot)
+VALUES
+(6, 'Monday', '10:00:00', '12:00:00', 30, 6), 
+(6, 'Monday', '14:00:00', '17:00:00', 30, 6), 
+(6, 'Tuesday', '10:00:00', '12:00:00', 30, 6),
+(6, 'Tuesday', '14:00:00', '17:00:00', 30, 6),
+(6, 'wednesday', '10:00:00', '12:00:00', 30, 6),
+(6, 'wednesday', '14:00:00', '17:00:00', 30, 6),
+(6, 'Thursday', '10:00:00', '12:00:00', 30, 6),
+(6, 'Thursday', '14:00:00', '17:00:00', 30, 6),
+(6, 'Friday', '10:00:00', '12:00:00', 30, 3),
+(6, 'Friday', '14:00:00', '17:00:00', 30, 3);
+-- Doctor 3: Dr. Rakesh (Pediatrics)
+INSERT INTO POC_Schedules (POC_ID, Day_of_Week, start_time, end_time, slot_duration, appointments_per_slot)
+VALUES
+(7, 'Monday', '10:00:00', '12:00:00', 30, 6), 
+(7, 'Monday', '14:00:00', '17:00:00', 30, 6), 
+(7, 'Tuesday', '10:00:00', '12:00:00', 30, 6),
+(7, 'Tuesday', '14:00:00', '17:00:00', 30, 6),
+(7, 'wednesday', '10:00:00', '12:00:00', 30, 6),
+(7, 'wednesday', '14:00:00', '17:00:00', 30, 6),
+(7, 'Thursday', '10:00:00', '12:00:00', 30, 6),
+(7, 'Thursday', '14:00:00', '17:00:00', 30, 6),
+(7, 'Friday', '10:00:00', '12:00:00', 30, 3),
+(7, 'Friday', '14:00:00', '17:00:00', 30, 3);

@@ -56,57 +56,59 @@ app.post('/webhook', async(req, res) => {
 
             if (messageType === 'text') {
                 // Get client ID based on the display phone number
-                const clientId = await getClientID(displayPhoneNumber);
+                const clientId = await getClientID(displayPhoneNumber, from);
+                if (clientId) {
 
-                // Check user status (new or returning)
-                userData = await getUserData(from);
+                    // Check user status (new or returning)
+                    userData = await getUserData(from);
 
-                if (userData) {
-                    // User exists - check for missing fields and prompt accordingly
-                    if (!userData.User_Name) {
-                        await updateUserField(from, 'User_Name', messageBody);
-                        await sendWhatsAppMessage(from, "Thank you! Please enter your email:");
-                    } else if (!userData.User_Email) {
-                        // Validate the email before updating
-                        if (isValidEmail(messageBody)) {
-                            await updateUserField(from, 'User_Email', messageBody);
-                            await sendWhatsAppMessage(from, "Thank you! Please share your location:");
+                    if (userData) {
+                        // User exists - check for missing fields and prompt accordingly
+                        if (!userData.User_Name) {
+                            await updateUserField(from, 'User_Name', messageBody);
+                            await sendWhatsAppMessage(from, "Thank you! Please enter your email:");
+                        } else if (!userData.User_Email) {
+                            // Validate the email before updating
+                            if (isValidEmail(messageBody)) {
+                                await updateUserField(from, 'User_Email', messageBody);
+                                await sendWhatsAppMessage(from, "Thank you! Please share your location:");
+                            } else {
+                                // Invalid email format - prompt user to enter a valid email
+                                await sendWhatsAppMessage(from, "The email you entered is invalid. Please enter a valid email address:");
+                            }
+                        } else if (!userData.User_Location) {
+                            await updateUserField(from, 'User_Location', messageBody);
+                            await sendWhatsAppMessage(from, "Thank you for completing your details.");
+
+                            // Show main menu after completing registration
+                            const welcomeMessage = await getWelcomeMessage(clientId);
+                            await sendWhatsAppMessage(from, `Hi ${userData.User_Name}, ${welcomeMessage}`);
+
+                            const mainMenuItems = await getMainMenu(clientId, 0);
+                            const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
+                            const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
+                            await sendInteractiveMessage(from, headerMessage, menuNames);
                         } else {
-                            // Invalid email format - prompt user to enter a valid email
-                            await sendWhatsAppMessage(from, "The email you entered is invalid. Please enter a valid email address:");
+                            // Fully registered user - display main menu
+                            const welcomeMessage = await getWelcomeMessage(clientId);
+                            await sendWhatsAppMessage(from, `Hi ${userData.User_Name}, ${welcomeMessage}`);
+
+                            const mainMenuItems = await getMainMenu(clientId, 0);
+                            const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
+                            const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
+                            await sendInteractiveMessage(from, headerMessage, menuNames);
+
+                            // Initialize Appointment_ID right after collecting full user data
+                            console.log(`user Id: ${userData.User_ID}`);
+                            /* const Appointment_ID = await insertAppointment(clientId, userData.User_ID);
+                             sessionMap[from] = Appointment_ID;
+                             console.log(`Appointment id: ${Appointment_ID}`); */
                         }
-                    } else if (!userData.User_Location) {
-                        await updateUserField(from, 'User_Location', messageBody);
-                        await sendWhatsAppMessage(from, "Thank you for completing your details.");
-
-                        // Show main menu after completing registration
-                        const welcomeMessage = await getWelcomeMessage(clientId);
-                        await sendWhatsAppMessage(from, `Hi ${userData.User_Name}, ${welcomeMessage}`);
-
-                        const mainMenuItems = await getMainMenu(clientId, 0);
-                        const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
-                        const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
-                        await sendInteractiveMessage(from, headerMessage, menuNames);
                     } else {
-                        // Fully registered user - display main menu
-                        const welcomeMessage = await getWelcomeMessage(clientId);
-                        await sendWhatsAppMessage(from, `Hi ${userData.User_Name}, ${welcomeMessage}`);
-
-                        const mainMenuItems = await getMainMenu(clientId, 0);
-                        const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
-                        const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
-                        await sendInteractiveMessage(from, headerMessage, menuNames);
-
-                        // Initialize Appointment_ID right after collecting full user data
-                        console.log(`user Id: ${userData.User_ID}`);
-                        /* const Appointment_ID = await insertAppointment(clientId, userData.User_ID);
-                         sessionMap[from] = Appointment_ID;
-                         console.log(`Appointment id: ${Appointment_ID}`); */
+                        // New user - insert user record and ask for name
+                        await insertUserData(from);
+                        await sendWhatsAppMessage(from, "Welcome! Please enter your name:");
                     }
-                } else {
-                    // New user - insert user record and ask for name
-                    await insertUserData(from);
-                    await sendWhatsAppMessage(from, "Welcome! Please enter your name:");
                 }
             } else {
                 // Extract the title from the JSON data

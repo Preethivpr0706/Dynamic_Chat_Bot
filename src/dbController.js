@@ -1,23 +1,34 @@
 const { getConnection } = require('./db');
 const { sendWhatsAppMessage } = require('./utils');
 
-function getClientID(displayPhoneNumber) {
+function getClientID(displayPhoneNumber, from) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT Client_ID FROM Client WHERE Contact_Number = ?';
         const connection = getConnection();
-        console.log(`displayPhoneNumber"${displayPhoneNumber}`);
-        console.log(`displayPhoneNumber"${displayPhoneNumber}`);
+
+        console.log(`Fetching Client ID for displayPhoneNumber: "${displayPhoneNumber}"`);
+
         connection.execute(query, [displayPhoneNumber], async(err, results) => {
             if (err) {
-                console.error('error running query:', err);
-                return;
+                console.error('Database query error:', err);
+                return reject(err); // Allow the caller to handle this error
             }
+
             if (results.length > 0) {
                 const clientId = results[0].Client_ID;
-                resolve(clientId);
-            } else {
-                await sendWhatsAppMessage(from, `There is no client with ID ${displayPhoneNumber}`);
-                reject(new Error(`There is no client with ID ${displayPhoneNumber}`));
+                return resolve(clientId);
+            }
+
+            console.warn(`No client found for displayPhoneNumber: "${displayPhoneNumber}"`);
+
+            try {
+                await sendWhatsAppMessage(from, `There is no client with the phone number ${displayPhoneNumber}`);
+                // Resolve with a null value to indicate "no client found" gracefully
+                return resolve(null);
+            } catch (messageError) {
+                console.error('Error sending WhatsApp message:', messageError);
+                // Still resolve null to avoid stopping the process
+                return resolve(null);
             }
         });
     });
@@ -451,7 +462,11 @@ const updateAvailableSlots = async(jsonData) => {
     const appointmentTime = data.Appointment_Time;
 
     const connection = getConnection();
-    await connection.execute(query, [doctorId, appointmentDate, appointmentTime]);
+    try {
+        await connection.execute(query, [doctorId, appointmentDate, appointmentTime]);
+    } catch (err) {
+        console.error('Error updating available slots:', err.message);
+    }
 };
 
 const increaseAvailableSlots = async(jsonData) => {
@@ -470,7 +485,11 @@ const increaseAvailableSlots = async(jsonData) => {
     const appointmentTime = data.Appointment_Time;
     const query = `UPDATE POC_Available_Slots SET appointments_per_slot = appointments_per_slot + 1 WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ?`;
     const connection = getConnection();
-    await connection.execute(query, [pocId, appointmentDate, appointmentTime]);
+    try {
+        await connection.execute(query, [pocId, appointmentDate, appointmentTime]);
+    } catch (err) {
+        console.error('Error increasing available slots:', err.message);
+    }
 };
 
 module.exports = { getAppointmentDetailsByAppointmentId, getAppointmentDetailsByUserID, increaseAvailableSlots, getMeetLink, getTemplateMessage, insertAppointment, updateAppointment, updateAvailableSlots, insertUserData, getUserData, updateUserField, getClientID, getWelcomeMessage, getMainMenu, getFromList, getPocFromPoc, getAvailableDates, getAvailableTimes, getAppointmentJsonDataByKey, getAppointmentJsonData, updateAppointmentJsonData };

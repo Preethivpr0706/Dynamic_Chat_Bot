@@ -32,8 +32,8 @@ async function sendWhatsAppMessage(to, message) {
 }
 
 // Function to send a button message (interactive message)
-async function sendInteractiveMessage(to, bodyText, buttons) {
-    const mediaId = await uploadImage();
+async function sendInteractiveMessageWithImage(to, bodyText, buttons, filePath) {
+    const mediaId = await uploadImage(filePath);
     // Ensure there's at least one button
     if (buttons.length === 0) {
         console.error('No buttons provided for interactive message.');
@@ -87,14 +87,14 @@ const fs = require('fs');
 const FormData = require('form-data');
 
 
-async function uploadImage() {
+async function uploadImage(filePath) {
     const url = `https://graph.facebook.com/v13.0/${process.env.PHONE_NUMBER_ID}/media`;
     const headers = {
         'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
     };
 
     const formData = new FormData();
-    formData.append('file', fs.createReadStream('E:/WHATSAPP CHAT BOT/DYNAMIC CHAT BOT/src/images/option.png')); // Local path
+    formData.append('file', fs.createReadStream(filePath)); // Local path
     formData.append('type', 'image/png'); // Specify the MIME type
     formData.append('messaging_product', 'whatsapp'); // Add the missing parameter
 
@@ -248,7 +248,99 @@ async function sendCancelRescheduleInteractiveMessage(to, bodyText, buttons) {
     }
 }
 
+async function sendInteractiveMessageWithDescription(to, sections, buttons, headerMessage) {
 
+    // Ensure there's at least one button  
+    if (buttons.length === 0) {
+        console.error('No buttons provided for interactive message.');
+        return; // Exit if no buttons are provided  
+    }
+
+    // Limit the number of buttons to 3  
+    const limitedButtons = buttons.slice(0, 3);
+    const url = `https://graph.facebook.com/v13.0/${process.env.PHONE_NUMBER_ID}/messages`;
+    const headers = {
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`, // Use the correct token  
+        'Content-Type': 'application/json'
+    };
+
+    const data = {
+        messaging_product: 'whatsapp',
+        to: to,
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            header: {
+                type: 'text',
+                text: headerMessage
+            },
+            body: {
+                text: sections.map((section) => `${section.title}\n${section.description}`).join('\n\n')
+            },
+            action: {
+                buttons: limitedButtons.map((button) => ({
+                    type: 'reply',
+                    reply: {
+                        id: button.id,
+                        title: button.title
+                    }
+                }))
+            }
+        }
+    };
+
+    try {
+        await axios.post(url, data, { headers });
+        console.log('Interactive message sent successfully');
+    } catch (error) {
+        console.error('Error sending interactive message:', error.response ? error.response.data : error.message);
+    }
+}
+
+// Function to send a button message (interactive message)
+async function sendInteractiveMessage(to, bodyText, buttons) {
+    // Ensure there's at least one button
+    if (buttons.length === 0) {
+        console.error('No buttons provided for interactive message.');
+        return; // Exit if no buttons are provided
+    }
+
+    // Limit the number of buttons to 3
+    const limitedButtons = buttons.slice(0, 3);
+    const url = `https://graph.facebook.com/v13.0/${process.env.PHONE_NUMBER_ID}/messages`;
+    const headers = {
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`, // Use the correct token
+        'Content-Type': 'application/json'
+    };
+    const data = {
+        messaging_product: 'whatsapp',
+        to: to,
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: {
+                text: bodyText
+            },
+            action: {
+                buttons: limitedButtons.map((button) => ({
+                    type: 'reply',
+                    reply: {
+                        id: button.id,
+                        title: button.title
+                    }
+                }))
+            }
+
+        }
+    };
+
+    try {
+        await axios.post(url, data, { headers });
+        console.log('Interactive message sent successfully');
+    } catch (error) {
+        console.error('Error sending interactive message:', error.response ? error.response.data : error.message);
+    }
+}
 // Exporting functions
 module.exports = {
     validateEmail,
@@ -256,5 +348,7 @@ module.exports = {
     sendInteractiveMessage,
     sendCancelRescheduleInteractiveMessage,
     sendRadioButtonMessage,
-    sendBackButtonMessage
+    sendBackButtonMessage,
+    sendInteractiveMessageWithDescription,
+    sendInteractiveMessageWithImage
 };

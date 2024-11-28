@@ -1,4 +1,4 @@
-const { getConnection } = require('./db');
+const { getConnection, connectDB } = require('./db');
 const { sendWhatsAppMessage } = require('./utils');
 
 function getClientID(displayPhoneNumber, from) {
@@ -125,6 +125,28 @@ function getPocFromPoc(iClientId, iMenuId, iKey) {
             console.log('Query results:', results);
 
             resolve(results);
+        });
+    });
+}
+
+function getPocDetails(ClientId, from) {
+    return new Promise((resolve, reject) => {
+        console.log(`getFromPOC: from:${from}`);
+        const query = `SELECT 
+                            POC_ID as POC_ID,
+                            POC_Name as POC_NAME 
+                        FROM POC 
+                        WHERE   Client_ID= ?
+                            AND Contact_Number = ?`;
+        const connection = getConnection();
+        connection.execute(query, [ClientId, from], (err, results) => {
+            if (err) {
+                console.error('error running query:', err);
+                return;
+            }
+            console.log('Query results:', results);
+
+            resolve(results[0]);
         });
     });
 }
@@ -492,4 +514,79 @@ const increaseAvailableSlots = async(jsonData) => {
     }
 };
 
-module.exports = { getAppointmentDetailsByAppointmentId, getAppointmentDetailsByUserID, increaseAvailableSlots, getMeetLink, getTemplateMessage, insertAppointment, updateAppointment, updateAvailableSlots, insertUserData, getUserData, updateUserField, getClientID, getWelcomeMessage, getMainMenu, getFromList, getPocFromPoc, getAvailableDates, getAvailableTimes, getAppointmentJsonDataByKey, getAppointmentJsonData, updateAppointmentJsonData };
+const moment = require('moment-timezone');
+
+async function getAppointmentDetailsForPocView(pocId, pageNumber, batchSize) {
+    return new Promise((resolve, reject) => {
+        const query1 = `SELECT * FROM poc_available_slots WHERE POC_ID = ? AND Schedule_Date >= CURDATE() ORDER BY Schedule_Date, Start_Time`;
+        const query2 = `SELECT * FROM poc_schedules WHERE POC_ID = ?`;
+        const connection = getConnection();
+
+        connection.execute(query1, [pocId], (err, availableSlots) => {
+            if (err) {
+                console.error('Error fetching available slots:', err.message);
+                reject(err);
+            } else {
+                connection.execute(query2, [pocId], (err, schedules) => {
+                    if (err) {
+                        console.error('Error fetching schedules:', err.message);
+                        reject(err);
+                    } else {
+                        const appointmentDetails = [];
+                        availableSlots.forEach((slot) => {
+                            const schedule = schedules.find((schedule) => schedule.Day_of_Week === getDayOfWeek(slot.Schedule_Date) && schedule.Start_Time <= slot.Start_Time && schedule.End_Time >= slot.End_Time);
+                            if (schedule) {
+                                const appointmentsCount = schedule.appointments_per_slot - slot.appointments_per_slot;
+                                const date = moment.tz(slot.Schedule_Date, 'YYYY-MM-DD', 'Asia/Kolkata'); // Asia/Kolkata is the time zone for India Standard Time    
+                                const time = moment.tz(`1970-01-01T${slot.Start_Time}Z`, 'YYYY-MM-DDTHH:mm:ssZ', 'Asia/Kolkata');
+                                const currentTime = moment.tz('Asia/Kolkata');
+                                const appointmentTime = moment.tz(`${date.format('YYYY-MM-DD')}T${time.format('HH:mm:ss')}Z`, 'YYYY-MM-DDTHH:mm:ssZ', 'Asia/Kolkata');
+                                if (appointmentsCount > 0 && appointmentTime.isSameOrAfter(currentTime)) {
+                                    appointmentDetails.push({
+                                        date: date.format('YYYY-MM-DD'),
+                                        day: date.format('dddd'),
+                                        time: time.format('HH:mm:ss'),
+                                        noOfAppointments: appointmentsCount,
+                                    });
+                                }
+                            }
+                        });
+
+                        // Paginate the results    
+                        const start = (pageNumber - 1) * batchSize;
+                        const end = start + batchSize;
+                        if (start >= appointmentDetails.length) {
+                            resolve({ message: 'You have reached the end of the list.' });
+                        } else {
+                            resolve(appointmentDetails.slice(start, end));
+                        }
+                    }
+                });
+            }
+        });
+    });
+}
+
+// Helper function to get the day of the week from a date   
+function getDayOfWeek(date) {
+    const dayOfWeek = new Date(date).getDay();
+    switch (dayOfWeek) {
+        case 0:
+            return 'Sunday';
+        case 1:
+            return 'Monday';
+        case 2:
+            return 'Tuesday';
+        case 3:
+            return 'Wednesday';
+        case 4:
+            return 'Thursday';
+        case 5:
+            return 'Friday';
+        case 6:
+            return 'Saturday';
+    }
+}
+
+
+module.exports = { getPocDetails, getAppointmentDetailsForPocView, getAppointmentDetailsByAppointmentId, getAppointmentDetailsByUserID, increaseAvailableSlots, getMeetLink, getTemplateMessage, insertAppointment, updateAppointment, updateAvailableSlots, insertUserData, getUserData, updateUserField, getClientID, getWelcomeMessage, getMainMenu, getFromList, getPocFromPoc, getAvailableDates, getAvailableTimes, getAppointmentJsonDataByKey, getAppointmentJsonData, updateAppointmentJsonData };

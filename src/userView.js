@@ -7,6 +7,7 @@ const { connectDB } = require('./db');
 connectDB();
 let userData;
 
+
 exports.handleUserView = async(req, res) => {
     const body = req.body;
     const changes = body.entry && body.entry[0].changes && body.entry[0].changes[0].value.messages;
@@ -26,7 +27,15 @@ exports.handleUserView = async(req, res) => {
             // Check user status (new or returning)  
             userData = await getUserData(from);
 
-            if (userData) {
+//Ashok:moved else to main if to give good understaning
+            if (!userData) 
+            {
+                // New user - insert user record and ask for name  
+                await insertUserData(from);
+                await sendWhatsAppMessage(from, "Welcome! Please enter your name:");
+            }
+            else
+            {
                 // User exists - check for missing fields and prompt accordingly  
                 if (!userData.User_Name) {
                     await updateUserField(from, 'User_Name', messageBody);
@@ -43,7 +52,7 @@ exports.handleUserView = async(req, res) => {
                 } else if (!userData.User_Location) {
                     await updateUserField(from, 'User_Location', messageBody);
                     await sendWhatsAppMessage(from, "Thank you for completing your details.");
-
+//Ashok:create method to make beloww welcome and first interactive as single method and reuse.
                     // Show main menu after completing registration  
                     const welcomeMessage = await getWelcomeMessage(clientId);
                     await sendWhatsAppMessage(from, `Hi ${userData.User_Name}, ${welcomeMessage}`);
@@ -51,7 +60,7 @@ exports.handleUserView = async(req, res) => {
                     const mainMenuItems = await getMainMenu(clientId, 0);
                     const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
                     const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
-                    await sendInteractiveMessageWithImage(from, headerMessage, menuNames, 'E:/WHATSAPP CHAT BOT/DYNAMIC CHAT BOT/src/images/welcome.jpg');
+                    await sendInteractiveMessageWithImage(from, headerMessage, menuNames, './../images/welcome.jpeg');
                 } else {
                     // Fully registered user - display main menu  
                     const welcomeMessage = await getWelcomeMessage(clientId);
@@ -60,7 +69,7 @@ exports.handleUserView = async(req, res) => {
                     const mainMenuItems = await getMainMenu(clientId, 0);
                     const headerMessage = mainMenuItems[0].HEADER_MESSAGE;
                     const menuNames = mainMenuItems.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID + '|' + item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.MENU_ID, title: item.MENU_NAME }));
-                    await sendInteractiveMessageWithImage(from, headerMessage, menuNames, 'E:/WHATSAPP CHAT BOT/DYNAMIC CHAT BOT/src/images/welcome.jpg');
+                    await sendInteractiveMessageWithImage(from, headerMessage, menuNames, './../images/welcome.jpeg');
 
                     // Initialize Appointment_ID right after collecting full user data  
                     console.log(`user Id: ${userData.User_ID}`);
@@ -68,10 +77,6 @@ exports.handleUserView = async(req, res) => {
                     sessionMap[from] = Appointment_ID;  
                     console.log(`Appointment id: ${Appointment_ID}`); */
                 }
-            } else {
-                // New user - insert user record and ask for name  
-                await insertUserData(from);
-                await sendWhatsAppMessage(from, "Welcome! Please enter your name:");
             }
         }
     } else {
@@ -119,7 +124,8 @@ exports.handleUserView = async(req, res) => {
                 if (actionMenuNames !== null) {
                     let menuNames;
                     // Extract MENU_NAME items for interactive message  
-                    console.log(actionMenuNames[0].Appointment_ID);
+                    //console.log(actionMenuNames[0].Appointment_ID)
+//Ashok: in what scenario, actionMenuNames[0].Appointment_ID is null??
                     if (actionMenuNames[0].Appointment_ID) {
                         menuNames = actionMenuNames.map(item => ({ id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.ITEM_ID + '~' + item.Appointment_ID + '|' + clientId + '~' + menuId + '~' + selectId, title: item.MENU_NAME }));
                     } else {
@@ -127,6 +133,7 @@ exports.handleUserView = async(req, res) => {
 
                     }
                     await sendRadioButtonMessage(from, headerMessage, menuNames);
+    //Ashok: Create method for sending backbutton message
                     const backmessage = [{
                         id: previousId + '~' + Appointment_ID + '|' + mainMenuItems[0].CLIENT_ID + '~' + mainMenuItems[0].MENU_ID + '~' + mainMenuItems[0].ITEM_ID,
                         title: 'Back'
@@ -159,7 +166,7 @@ exports.handleUserView = async(req, res) => {
 async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, from, Appointment_ID) {
     const iLang = 'ENG';
     console.log(`handleAction: iAction:${iAction} ,iClientID:${iClientId} ,iMenuId:${iMenuId}, iUserValue:${iUserValue} iSelectId: ${iSelectId} appointment_id: ${Appointment_ID}`);
-
+//Ashok:Why we need this below if else conditions to update appoinment and json?
     if (iUserValue != 'Back' && iUserValue != 'Cancel Appointment' && iUserValue != 'Reschedule') {
         if (iAction[0].split('~')[0] === 'Poc_name') {
             await updateAppointment('POC_ID', iSelectId, Appointment_ID);
@@ -177,11 +184,13 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
     } else if (iAction[1] === 'POC') {
         return await getPocFromPoc(iClientId, iMenuId, await getAppointmentJsonDataByKey(Appointment_ID, 'Department'));
     } else if (iAction[1] === 'FETCH_AVAILABLE_DATES_DIRECT') {
+//Ashok: Why we have to update again?
         await updateAppointmentJsonData(Appointment_ID, 'Poc_ID', iSelectId);
         return await getAvailableDates(iClientId, iMenuId, iSelectId);
     } else if (iAction[1] === 'FETCH_AVAILABLE_DATES_CHECKUP') {
         let poc_details = await getPocFromPoc(iClientId, iMenuId, await getAppointmentJsonDataByKey(Appointment_ID, 'Appointment_Type'));
         poc_details = poc_details[0];
+//Ashok: Why we have to update again?
         await updateAppointmentJsonData(Appointment_ID, 'Poc_ID', poc_details.ITEM_ID);
         await updateAppointment('POC_ID', poc_details.ITEM_ID, Appointment_ID);
         console.log(`Poc_ID: ${poc_details.ITEM_ID}`);
@@ -190,6 +199,7 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
         return await getAvailableTimes(iClientId, iMenuId, iSelectId, await getAppointmentJsonDataByKey(Appointment_ID, 'Appointment_Date'));
     } else if (iAction[1] === 'CONFIRM') {
         let confirmationMessage = await getTemplateMessage(iClientId, iAction[1]);
+//Ashok: Move the below replace section to a method, also do not use multiple hits to get json key. Get the json once and get the values from retrived json
 
         // Replace each placeholder with corresponding data   
         confirmationMessage = confirmationMessage.replace('[User_Name]', userData.User_Name || '');
@@ -215,6 +225,7 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
         if (iUserValue === 'Confirm') {
             await updateAppointment('Status', 'Confirmed', Appointment_ID);
             await updateAppointment('Is_Active', 1, Appointment_ID);
+//Ashok: There is a possiblility of more then allowed number of peron booking a slot.
             await updateAvailableSlots(await getAppointmentJsonData(Appointment_ID));
             let finalizeMessage = await getTemplateMessage(iClientId, iAction[1]);
             finalizeMessage = finalizeMessage.replace('[Appointment_ID]', Appointment_ID || '');
@@ -226,6 +237,8 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
         return null;
     } else if (iAction[1] === 'CONFIRM_EMERGENCY') {
         let confirmationMessage = await getTemplateMessage(iClientId, iAction[1]);
+
+        //Ashok: Consolidate all the CONFIRM and FINALIZE sections, we can not have different blocks to handle this.
 
         // Replace each placeholder with corresponding data   
         confirmationMessage = confirmationMessage.replace('[User_Name]', userData.User_Name || '');
@@ -312,6 +325,7 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
                     id: item.CLIENT_ID + '~' + item.MENU_ID + '~' + item.ITEM_ID + '~' + appointment.id + '|' + iClientId + '~' + iMenuId + '~' + iSelectId,
                     title: item.MENU_NAME
                 }));
+    //Ashok: Why we need separate method for this?
                 await sendCancelRescheduleInteractiveMessage(from, appointment.text, cancelItems);
             }
         } else {
@@ -335,6 +349,8 @@ async function handleAction(iAction, iClientId, iMenuId, iUserValue, iSelectId, 
         }
         return null;
     } else if (iAction[1] === 'FETCH_APPOINTMENT_DETAILS_RESCHEDULE') {
+
+//Ashok: Why we need separate fetch appointment for Cancel and resudule?
         const appointmentDetails = await getAppointmentDetailsByUserID(userData.User_ID);
         console.log(appointmentDetails);
         if (appointmentDetails && appointmentDetails.length > 0) {

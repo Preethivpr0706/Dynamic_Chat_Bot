@@ -259,3 +259,17 @@ INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_N
 
 
 UPDATE `chatbotdynamic`.`menu` SET `Header_Message` = 'Please confirm your appointment details' WHERE (`Menu_ID` = '25');
+
+
+
+-- 02/12/24
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Appointment_Time~CONFIRM~CONFIRM_CHECKUP' WHERE (`Menu_ID` = '10');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Emergency_Reason~CONFIRM~CONFIRM_EMERGENCY' WHERE (`Menu_ID` = '13');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Appointment_Time~CONFIRM~CONFIRM_DIRECT' WHERE (`Menu_ID` = '19');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Appointment_Time~CONFIRM~CONFIRM_TELE' WHERE (`Menu_ID` = '25');
+
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_CHECKUP' WHERE (`Menu_ID` = '11');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_DIRECT' WHERE (`Menu_ID` = '20');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_EMERGENCY' WHERE (`Menu_ID` = '14');
+UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_TELE' WHERE (`Menu_ID` = '26');
+

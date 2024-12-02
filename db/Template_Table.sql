@@ -50,3 +50,10 @@ INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
 VALUES
 (1, 'FINALIZE_RESCHEDULE', 'Appointment rescheduled successfully. Your *New Appointment ID:* [Appointment_ID]');
 
+-- 02/12/24
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_NAME` = 'CONFIRM_DIRECT' WHERE (`TEMPLATE_ID` = '1');
+INSERT INTO `chatbotdynamic`.`templates` (`TEMPLATE_ID`, `CLIENT_ID`, `TEMPLATE_NAME`, `TEMPLATE_TEXT`) VALUES ('13', '1', 'CONFIRM_TELE', 'Here are your appointment details:\\r\\n *Name:* [User_Name]\\r\\n *Email:* [User_Email]\\n\\r *Location:* [User_Location]\\n\\r *Appointment Type:* [Appointment_Type]\\n\\r *Department:* [Department]\\n\\r *Doctor:* [POC]\\n\\r *Appointment Date:* [Appointment_Date]\\n\\r *Appointment Time:* [Appointment_Time]');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Here are your appointment details:\r\n *Name:* [User_Name]\r\n *Email:* [User_Email]\n\r *Location:* [User_Location]\n\r *Appointment Type:* [Appointment_Type]\n\r *Department:* [Department]\n\r *Doctor:* [POC]\n\r *Appointment Date:* [Appointment_Date]\n\r *Appointment Time:* [Appointment_Time]' WHERE (`TEMPLATE_ID` = '13');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]\n\r  Your *G-meet Link* is given below! \n \n [Meet_Link]' WHERE (`TEMPLATE_ID` = '5');
+UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_NAME` = 'FINALIZE_DIRECT' WHERE (`TEMPLATE_ID` = '2');
+INSERT INTO `chatbotdynamic`.`templates` (`TEMPLATE_ID`, `CLIENT_ID`, `TEMPLATE_NAME`, `TEMPLATE_TEXT`) VALUES ('14', '1', 'FINALIZE_CHECKUP', 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]');

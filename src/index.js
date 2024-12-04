@@ -1,10 +1,12 @@
-// index.js  
 const express = require('express');
 const dotenv = require('dotenv');
+const winston = require('winston');
 const userView = require('./userView');
 const pocView = require('./pocView');
 const { getClientID, getPocDetails } = require('./dbController');
 const { connectDB } = require('./db');
+const { parseWebhookData, logMessageDetails } = require('./utils');
+const logger = require('./Logger');
 
 connectDB();
 dotenv.config();
@@ -14,6 +16,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 app.get('/', (req, res) => {
+    logger.info('GET / endpoint hit - Server is running!');
     res.send('Server is running! Welcome to the Meister Solutions.');
 });
 
@@ -24,50 +27,43 @@ app.get('/webhook', (req, res) => {
     const challenge = req.query['hub.challenge'];
 
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        console.log('WEBHOOK_VERIFIED');
+        logger.info('Webhook verified successfully.');
         res.status(200).send(challenge);
     } else {
+        logger.warn('Webhook verification failed.');
         res.sendStatus(403);
     }
 });
 
+
 app.post('/webhook', async(req, res) => {
-    const body = req.body;
+    const webhookData = await parseWebhookData(req.body);
+    if (!webhookData) {
+        // logger.error('Invalid webhook payload received.');
+        return res.sendStatus(404);
+    }
 
-    if (body.object) {
-        const changes = body.entry && body.entry[0].changes && body.entry[0].changes[0].value.messages;
-        const displayPhoneNumber = body.entry[0].changes[0].value.metadata.display_phone_number;
-        const phoneNumberId = body.entry[0].changes[0].value.metadata.phone_number_id;
+    const { from, messageBody, messageType, displayPhoneNumber, phoneNumberId } = webhookData;
+    await logMessageDetails(logger, from, messageBody, messageType);
 
-        process.env.PHONE_NUMBER_ID = phoneNumberId;
+    process.env.PHONE_NUMBER_ID = phoneNumberId;
 
-        if (changes && changes[0]) {
-            const from = changes[0].from;
-            const messageBody = changes[0].text ? changes[0].text.body : null;
-            console.log(`Received message: ${messageBody} from: ${from}`);
+    try {
+        const clientId = await getClientID(displayPhoneNumber, from);
+        const pocDetails = await getPocDetails(clientId, from);
 
-            const messageType = changes[0].text ? changes[0].type : null;
-            console.log(`Received message type: ${messageType}`);
-
-            // Check if the message is from a POC or a User  
-            const clientId = await getClientID(displayPhoneNumber, from);
-            const pocDetails = await getPocDetails(clientId, from);
-
-            if (pocDetails) {
-                // Handle POC view  
-                pocView.handlePocView(req, res);
-            } else {
-                // Handle User view  
-                userView.handleUserView(req, res);
-            }
+        if (pocDetails) {
+            pocView.handlePocView(req, res, webhookData);
         } else {
-            res.sendStatus(200);
+            userView.handleUserView(req, res, webhookData);
         }
-    } else {
-        res.sendStatus(404);
+    } catch (error) {
+        logger.error(`Error processing webhook: ${error.message}`);
+        res.sendStatus(500);
     }
 });
 
+
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    logger.info(`Server is running on http://localhost:${port}`);
 });

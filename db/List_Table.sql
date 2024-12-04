@@ -28,3 +28,7 @@ UPDATE `chatbotdynamic`.`list` SET `Value_name` = 'Welcome to Miot Hospital😊'
 
 INSERT INTO List (Client_ID, Key_name, Lang, Value_name, Display_Order)
 VALUES (1, 'HEALTH_CHECKUP','ENG','Master_Health_Checkup',1);
+
+
+-- client 2
+INSERT INTO `chatbotdynamic`.`list` (`Client_ID`, `Item_ID`, `Key_name`, `Lang`, `Value_name`, `Display_Order`) VALUES ('2', '9', 'GREETINGS', 'ENG', 'Welcome to HK Hospital😊', '1');

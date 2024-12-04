@@ -57,3 +57,12 @@ UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Here are your appoint
 UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_TEXT` = 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]\n\r  Your *G-meet Link* is given below! \n \n [Meet_Link]' WHERE (`TEMPLATE_ID` = '5');
 UPDATE `chatbotdynamic`.`templates` SET `TEMPLATE_NAME` = 'FINALIZE_DIRECT' WHERE (`TEMPLATE_ID` = '2');
 INSERT INTO `chatbotdynamic`.`templates` (`TEMPLATE_ID`, `CLIENT_ID`, `TEMPLATE_NAME`, `TEMPLATE_TEXT`) VALUES ('14', '1', 'FINALIZE_CHECKUP', 'Appointment confirmed. *Your Appointment ID:* [Appointment_ID]');
+
+-- client 2
+INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
+VALUES
+(2, 'CONFIRM', 'Here are your appointment details:\r\n \r *Name:* [User_Name]\r\n *Email:* [User_Email]\r\n *Location:* [User_Location]\r\n *Doctor:* [POC]\n\r *Appointment Date:* [Appointment_Date]\n\r *Appointment Time:* [Appointment_Time]');
+
+INSERT INTO Templates (CLIENT_ID, TEMPLATE_NAME, TEMPLATE_TEXT)
+VALUES
+(2, 'FINALIZE', 'Appointment confirmed. Your *Appointment ID:* [Appointment_ID]');

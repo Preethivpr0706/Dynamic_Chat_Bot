@@ -99,3 +99,32 @@ VALUES
 (7, 'Thursday', '14:00:00', '17:00:00', 30, 6),
 (7, 'Friday', '10:00:00', '12:00:00', 30, 3),
 (7, 'Friday', '14:00:00', '17:00:00', 30, 3);
+
+
+-- client2 : doctor john
+INSERT INTO POC_Schedules (POC_ID, Day_of_Week, start_time, end_time, slot_duration, appointments_per_slot)
+VALUES
+(8, 'Monday', '10:00:00', '12:00:00', 30, 6), 
+(8, 'Monday', '14:00:00', '17:00:00', 30, 6), 
+(8, 'Tuesday', '10:00:00', '12:00:00', 30, 6),
+(8, 'Tuesday', '14:00:00', '17:00:00', 30, 6),
+(8, 'wednesday', '10:00:00', '12:00:00', 30, 6),
+(8, 'wednesday', '14:00:00', '17:00:00', 30, 6),
+(8, 'Thursday', '10:00:00', '12:00:00', 30, 6),
+(8, 'Thursday', '14:00:00', '17:00:00', 30, 6),
+(8, 'Friday', '10:00:00', '12:00:00', 30, 3),
+(8, 'Friday', '14:00:00', '17:00:00', 30, 3);
+
+-- client dr. sony
+INSERT INTO POC_Schedules (POC_ID, Day_of_Week, start_time, end_time, slot_duration, appointments_per_slot)
+VALUES
+(9, 'Monday', '10:00:00', '12:00:00', 30, 6), 
+(9, 'Monday', '14:00:00', '17:00:00', 30, 6), 
+(9, 'Tuesday', '10:00:00', '12:00:00', 30, 6),
+(9, 'Tuesday', '14:00:00', '17:00:00', 30, 6),
+(9, 'wednesday', '10:00:00', '12:00:00', 30, 6),
+(9, 'wednesday', '14:00:00', '17:00:00', 30, 6),
+(9, 'Thursday', '10:00:00', '12:00:00', 30, 6),
+(9, 'Thursday', '14:00:00', '17:00:00', 30, 6),
+(9, 'Friday', '10:00:00', '12:00:00', 30, 3),
+(9, 'Friday', '14:00:00', '17:00:00', 30, 3);

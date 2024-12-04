@@ -273,3 +273,20 @@ UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_
 UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_EMERGENCY' WHERE (`Menu_ID` = '14');
 UPDATE `chatbotdynamic`.`menu` SET `Action` = 'Confirm_Status~FINALIZE~FINALIZE_TELE' WHERE (`Menu_ID` = '26');
 
+
+
+-- client 2
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Display_Order`, `Parent_Menu_ID`, `Header_Message`) VALUES ('34', '2', 'ENG', 'Book Appointment ', '1', '0', '*How can I help you?*');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Action`, `Header_Message`) VALUES ('35', '2', 'ENG', 'Fetch Doctor', 'Appointment_Function~POC~Specialization', 'Select a Doctor');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Action`, `Header_Message`) VALUES ('36', '2', 'ENG', 'Fetch Dates', 'Poc_name~FETCH_AVAILABLE_DATES_DIRECT', 'Select a date');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Action`, `Header_Message`) VALUES ('37', '2', 'ENG', 'Fetch Times', 'Appointment_Date~FETCH_AVAILABLE_TIMES_DIRECT', 'Select a time');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Action`, `Header_Message`) VALUES ('38', '2', 'ENG', 'Confim', 'Appointment_Time~CONFIRM~CONFIRM', 'Please confirm your details');
+INSERT INTO `chatbotdynamic`.`menu` (`Menu_ID`, `Client_ID`, `Language`, `Menu_Name`, `Action`, `Header_Message`) VALUES ('39', '2', 'ENG', 'Finalize', 'Confirm_Status~FINALIZE~FINALIZE', 'Appointment Confirmed');
+
+
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '34' WHERE (`Menu_ID` = '35');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '35' WHERE (`Menu_ID` = '36');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '36' WHERE (`Menu_ID` = '37');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '37' WHERE (`Menu_ID` = '38');
+UPDATE `chatbotdynamic`.`menu` SET `Parent_Menu_ID` = '38' WHERE (`Menu_ID` = '39');
+

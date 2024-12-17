@@ -37,18 +37,30 @@ app.get('/webhook', (req, res) => {
 
 
 app.post('/webhook', async(req, res) => {
-    const webhookData = await parseWebhookData(req.body);
-    if (!webhookData) {
-        // logger.error('Invalid webhook payload received.');
-        return res.sendStatus(404);
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+        logger.error('Empty webhook payload received.');
+        return res.status(204).send(); // Send a 204 status code   
     }
 
-    const { from, messageBody, messageType, displayPhoneNumber, phoneNumberId } = webhookData;
-    await logMessageDetails(logger, from, messageBody, messageType);
-
-    process.env.PHONE_NUMBER_ID = phoneNumberId;
-
     try {
+        const webhookData = await parseWebhookData(req.body);
+
+        if (!webhookData || !webhookData.from || !webhookData.messageBody || !webhookData.messageType || !webhookData.displayPhoneNumber) {
+            //logger.error('Invalid webhook data.');
+            return res.status(204).send(); // Send a 204 status code    
+        }
+
+        if (webhookData.messageType === 'interactive' && !webhookData.message.interactive) {
+            logger.error('Invalid interactive message.');
+            return res.status(204).send(); // Send a 204 status code    
+        }
+
+        const { from, messageBody, messageType, displayPhoneNumber, phoneNumberId } = webhookData;
+        await logMessageDetails(logger, from, messageBody, messageType);
+
+        process.env.PHONE_NUMBER_ID = phoneNumberId;
+
         const clientId = await getClientID(displayPhoneNumber, from);
         const pocDetails = await getPocDetails(clientId, from);
 
@@ -59,9 +71,10 @@ app.post('/webhook', async(req, res) => {
         }
     } catch (error) {
         logger.error(`Error processing webhook: ${error.message}`);
-        res.sendStatus(500);
+        res.status(204).send(); // Send a 204 status code   
     }
 });
+
 
 
 app.listen(port, () => {

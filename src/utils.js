@@ -343,25 +343,52 @@ async function sendInteractiveMessage(to, bodyText, buttons) {
 
 // utils/webhookParser.js
 async function parseWebhookData(body) {
-    if (!body.object || !body.entry || !body.entry[0].changes) return null;
+    try {
+        if (!body.object || !body.entry || !body.entry[0].changes) {
+            logger.error('Invalid webhook data:', body);
+            return null;
+        }
 
-    const entry = body.entry[0];
-    const changes = entry.changes[0].value;
+        const entry = body.entry[0];
+        const changes = entry.changes[0].value;
 
-    // Check if messages exist
-    if (!changes || !changes.messages || !changes.messages[0]) return null;
+        // Check if messages exist  
+        // Check if messages exist  
+        if (!changes || !changes.messages || changes.messages.length === 0) {
+            //logger.info('No messages in webhook data:', body);
+            return null;
+        }
 
-    const message = changes.messages[0];
-    const metadata = changes.metadata || {};
-    const displayPhoneNumber = metadata.display_phone_number || null;
-    const phoneNumberId = metadata.phone_number_id || null;
+        if (!changes.messages[0]) {
+            //logger.info('No messages in webhook data:', body);
+            return { changes, displayPhoneNumber: null, phoneNumberId: null, from: null, messageBody: null, messageType: null, message: null };
+        }
 
-    const from = message.from || null;
-    const messageBody = message.text ? message.text.body : null;
-    const messageType = message.type || null;
+        const message = changes.messages[0];
+        const metadata = changes.metadata || {};
+        const displayPhoneNumber = metadata.display_phone_number || null;
+        const phoneNumberId = metadata.phone_number_id || null;
 
-    return { changes, displayPhoneNumber, phoneNumberId, from, messageBody, messageType, message };
+        const from = message.from || null;
+        let messageBody = null;
+        let messageType = null;
+
+        if (message.interactive) {
+            messageType = 'interactive';
+            messageBody = message.interactive.button_reply ? message.interactive.button_reply.title : message.interactive.list_reply ? message.interactive.list_reply.title : null;
+        } else if (message.text) {
+            messageType = 'text';
+            messageBody = message.text.body;
+        }
+
+        return { changes, displayPhoneNumber, phoneNumberId, from, messageBody, messageType, message };
+    } catch (error) {
+        logger.error('Error parsing webhook data:', error);
+        return null;
+    }
 }
+
+
 
 
 async function logMessageDetails(logger, from, messageBody, messageType) {

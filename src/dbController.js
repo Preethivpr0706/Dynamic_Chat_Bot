@@ -230,7 +230,8 @@ const getAvailableDates = (clientId, menuId, pocIdOrAppointmentType, Appointment
     FROM poc_available_slots    
     WHERE POC_ID = ?    
       AND Schedule_Date >= CURDATE()    
-      AND appointments_per_slot > 0    
+      AND appointments_per_slot > 0  
+      AND Active_Status = 'unblocked'  
       AND EXISTS (    
        SELECT 1    
        FROM poc_available_slots AS slots    
@@ -271,7 +272,8 @@ const getAvailableDates = (clientId, menuId, pocIdOrAppointmentType, Appointment
     FROM poc_available_slots    
     WHERE POC_ID = ?    
       AND Schedule_Date >= CURDATE()    
-      AND appointments_per_slot > 0    
+      AND appointments_per_slot > 0   
+      AND Active_Status = 'unblocked' 
       AND EXISTS (    
        SELECT 1    
        FROM poc_available_slots AS slots    
@@ -321,6 +323,7 @@ function getAvailableTimes(iClientId, iMenuId, iKey, iValue) {
       WHERE POC_ID = ?   
         AND Schedule_Date = STR_TO_DATE(?, '%Y-%m-%d')   
         AND appointments_per_slot > 0   
+        AND Active_Status = 'unblocked'
         AND (Schedule_Date > CURDATE() OR (Schedule_Date = CURDATE() AND Start_Time >= CURTIME()))   
       ORDER BY Start_Time   
       LIMIT 10   
@@ -677,7 +680,7 @@ const updateAvailableSlots = async(jsonData) => {
     const query = `    
    UPDATE POC_Available_Slots    
    SET appointments_per_slot = appointments_per_slot - 1    
-   WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ? AND appointments_per_slot > 0;    
+   WHERE POC_ID = ? AND Schedule_Date = ? AND Start_Time = ? AND appointments_per_slot > 0 AND Active_Status = 'unblocked';    
   `;
 
     // Access the nested `JSON_DATA` object   
